@@ -27,7 +27,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -92,7 +93,6 @@ public class Drawer extends SlimefunItem implements Listener {
 
         ItemFrame frame = world.spawn(spawnLocation, ItemFrame.class);
         frame.setItemDropChance(0f);
-        frame.setFixed(true);
 
         // Just in case the frame spawns on another face.
         if (frame.getAttachedFace().getOppositeFace() != face) frame.remove();
@@ -297,12 +297,12 @@ public class Drawer extends SlimefunItem implements Listener {
     }
 
     @EventHandler
-    private void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+    private void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         // Make sure the entity is an Item Frame.
         if (!(event.getEntity() instanceof ItemFrame)) return;
 
         // Make sure the destroyer is a player.
-        if (!(event.getRemover() instanceof Player)) return;
+        if (!(event.getDamager() instanceof Player)) return;
 
         // Get the block from the frame.
         ItemFrame frame = (ItemFrame) event.getEntity();
@@ -316,7 +316,7 @@ public class Drawer extends SlimefunItem implements Listener {
         event.setCancelled(true);
 
         // Get inventory's.
-        Player player = (Player) event.getRemover();
+        Player player = (Player) event.getDamager();
         PlayerInventory playerInventory = player.getInventory();
 
         BlockMenu menu = BlockStorage.getInventory(block);
@@ -344,6 +344,23 @@ public class Drawer extends SlimefunItem implements Listener {
         // Update the item frame and block storage to reflect new changes.
         updateItemFrame(frame, menu);
         updateBlockStorage(block);
+    }
+
+    @EventHandler
+    private void onHangingBreak(HangingBreakEvent event) {
+        // Make sure the entity is an Item Frame.
+        if (!(event.getEntity() instanceof ItemFrame)) return;
+
+        // Get the block from the frame.
+        ItemFrame frame = (ItemFrame) event.getEntity();
+        Block block = getBlockFromFrame(frame);
+
+        // Make sure the block is a drawer.
+        SlimefunItem slimefunItem = getSlimefunItem(block);
+        if (slimefunItem == null || !slimefunItem.equals(this)) return;
+
+        // Only cancel if an entity doesn't remove it.
+        event.setCancelled(true);
     }
 
 
