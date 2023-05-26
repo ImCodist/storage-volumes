@@ -1,64 +1,39 @@
 package xyz.imcodist.slimefunaddon;
 
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.java.JavaPlugin;
-
-import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
-import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
-import io.github.thebusybiscuit.slimefun4.api.recipes.RecipeType;
+import io.github.thebusybiscuit.slimefun4.api.researches.Research;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
 import io.github.thebusybiscuit.slimefun4.api.SlimefunAddon;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.config.Config;
+import io.github.thebusybiscuit.slimefun4.api.items.ItemGroup;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.items.CustomItemStack;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import xyz.imcodist.slimefunaddon.items.Drawer;
 
-public class StorageVolumes extends JavaPlugin implements SlimefunAddon {
+public class StorageVolumes extends JavaPlugin implements SlimefunAddon, Listener {
 
     @Override
     public void onEnable() {
-        // Read something from your config.yml
+        // Load config.
         Config cfg = new Config(this);
 
-        if (cfg.getBoolean("options.auto-update")) {
-            // You could start an Auto-Updater for example
-        }
+        // Create the main category.
+        NamespacedKey categoryId = new NamespacedKey(this, "main_category");
+        CustomItemStack categoryItem = new CustomItemStack(Material.BARREL, "&2Storage Volumes");
 
-        /*
-         * 1. Creating a new Category
-         * This Category will use the following ItemStack
-         */
-        ItemStack itemGroupItem = new CustomItemStack(Material.DIAMOND, "&4Addon Category", "", "&a> Click to open");
+        ItemGroup itemGroup = new ItemGroup(categoryId, categoryItem);
 
-        // Give your Category a unique id.
-        NamespacedKey itemGroupId = new NamespacedKey(this, "addon_category");
-        ItemGroup itemGroup = new ItemGroup(itemGroupId, itemGroupItem);
+        // Add drawer item.
+        SlimefunItem drawerItem = new Drawer(itemGroup);
+        drawerItem.register(this);
 
-        /*
-         * 2. Create a new SlimefunItemStack
-         * This class has many constructors, it is very important
-         * that you give each item a unique id.
-         */
-        SlimefunItemStack slimefunItem = new SlimefunItemStack("COOL_DIAMOND", Material.DIAMOND, "&4Cool Diamond", "&c+20% Coolness");
-
-        /*
-         * 3. Creating a Recipe
-         * The Recipe is an ItemStack Array with a length of 9.
-         * It represents a Shaped Recipe in a 3x3 crafting grid.
-         * The machine in which this recipe is crafted in is specified
-         * further down as the RecipeType.
-         */
-        ItemStack[] recipe = { new ItemStack(Material.EMERALD), null, new ItemStack(Material.EMERALD), null, new ItemStack(Material.DIAMOND), null, new ItemStack(Material.EMERALD), null, new ItemStack(Material.EMERALD) };
-
-        /*
-         * 4. Registering the Item
-         * Now you just have to register the item.
-         * RecipeType.ENHANCED_CRAFTING_TABLE refers to the machine in
-         * which this item is crafted in.
-         * Recipe Types from Slimefun itself will automatically add the recipe to that machine.
-         */
-        SlimefunItem item = new SlimefunItem(itemGroup, slimefunItem, RecipeType.ENHANCED_CRAFTING_TABLE, recipe);
-        item.register(this);
+        // Create the drawers research.
+        NamespacedKey drawerResearchID = new NamespacedKey(this, "drawer_research");
+        Research drawerResearch = new Research(drawerResearchID, 122120050, "Drawers", 10);
+        drawerResearch.addItems(drawerItem);
+        drawerResearch.register();
     }
 
     @Override
@@ -74,11 +49,6 @@ public class StorageVolumes extends JavaPlugin implements SlimefunAddon {
 
     @Override
     public JavaPlugin getJavaPlugin() {
-        /*
-         * You will need to return a reference to your Plugin here.
-         * If you are using your main class for this, simply return "this".
-         */
         return this;
     }
-
 }
