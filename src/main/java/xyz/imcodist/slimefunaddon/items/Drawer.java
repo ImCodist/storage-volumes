@@ -334,11 +334,34 @@ public class Drawer extends SlimefunItem implements Listener {
             if (mainStack.getAmount() < amountToRemove) amountToRemove = mainStack.getAmount();
 
             ItemStack addStack = mainStack.clone();
-            addStack.setAmount(amountToRemove);
-
             mainStack.setAmount(mainStack.getAmount() - amountToRemove);
 
-            playerInventory.addItem(addStack);
+            int amountCanAdd = 0;
+            for (int i = 0; i < playerInventory.getSize() - 5; i++) {
+                ItemStack invStack = playerInventory.getItem(i);
+
+                if (invStack == null) {
+                    amountCanAdd += addStack.getMaxStackSize();
+                } else if (invStack.isSimilar(addStack)) {
+                    amountCanAdd += addStack.getMaxStackSize() - invStack.getAmount();
+                }
+            }
+
+            if (amountCanAdd > 0) {
+                if (amountCanAdd > amountToRemove) amountCanAdd = amountToRemove;
+
+                addStack.setAmount(amountCanAdd);
+                playerInventory.addItem(addStack);
+
+                amountToRemove -= amountCanAdd;
+            }
+
+            if (amountToRemove > 0) {
+                addStack.setAmount(amountToRemove);
+
+                World world = player.getWorld();
+                world.dropItem(player.getLocation(), addStack);
+            }
         }
 
         // Update the item frame and block storage to reflect new changes.
